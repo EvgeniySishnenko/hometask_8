@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{htmlWebpackPlugin.options.title}}</title>
+    <script src="https://vk.com/js/api/openapi.js" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:400,500" rel="stylesheet">
+</head>
+<body>
+<div class="wrapper">
+    <div class="container-friends">
+        <div class="header-friends">
+            <h1 class="h1-title margin-left">Выберите друзей</h1>
+        </div>
+        <div class="filter-friends">
+            <div class="filter-left">
+                <input type="text" class="margin-left style-input input-left" placeholder="Начните вводить имя друга">
+            </div>
+            <div class="filter-right">
+                <input type="text" class="margin-left style-input input-right" placeholder="Название">
+            </div>
+        </div>
+        <div class="title-friends">
+            <div class="margin-left title-friends--left">Ваши друзья</div>
+            <div class="margin-left title-friends--right">Друзья в списке</div>
+        </div>
+        <div class="wrapper-dnd">
+        <div class="wrapper-dnd--left">
+            {{> "./friends-content.hbs"}}
+        </div>
+        <div class="wrapper-dnd--right ">
+            <ul class="friends-list--right drop-zone"></ul>
+        </div>
+        </div>
+         <div class="bottom">
+             <a href="#" class="button-save"><span>Сохранить</span></a>
+         </div>  
+       
+        </div>
+</div>
+</body>
+</html>
