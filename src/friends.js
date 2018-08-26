@@ -1,9 +1,17 @@
-import renderFriendsFn from '../friends-content.hbs';
+import renderFriendsFnLeft from '../friends-left.hbs';
+import renderFriendsFnRight from '../friends-right.hbs';
+
 // импортируем в начале файла необходимый нам шаблон .hbs
 // так как в сборке уже присутствует handlebars и handlebars-loader
 // переменная renderFriendsFn - наша функция рендеринга шаблона friends.hbs
 
 import './style/style.scss';
+
+let rightList = localStorage.getItem('rightList') ?
+    JSON.parse(localStorage.getItem('rightList')) : [];
+
+let leftList = localStorage.getItem('leftList') ?
+    JSON.parse(localStorage.getItem('leftList')) : [];
 
 // инициализация ВК
 VK.init ({
@@ -45,24 +53,91 @@ auth()
         return callAPI('friends.get', { fields: 'photo_50' });
     })
     .then(response => {
-        for (var i = 0; i < response.length; i++) {
-            if (!response[i].photo_50) {
-                response[i].photo_50;
-            }
-        } 
-        
-        const friendsHtml = renderFriendsFn(response),
-            result = document.querySelector('.wrapper-dnd--left');
-        
-        result.innerHTML = friendsHtml;
+       
+        for (var i = 0; i < response.items.length; i++) {            
+            leftList.push(response.items[i]); 
+        }
+        addElemsLeft(leftList);
     });
+
+addElemsRight(rightList);
+
+
+
+// -----добавление и удаление списка друзей 
+
+// функция добавления елементов в массив
+
+function addItemArray(id, array) {
+    let item = array.find(items => items.id == Number(id));
+
+    return item;
+}
+
+// функция удаление елементов из массива
+function removeItemsArray (id, array) {
+    array = array.filter(items => items.id != Number(id));
+
+    return array;
+}
+ 
+// функция добавление элементов в DOM
+function addElemsLeft(array) {
+
+    const friendsHtml = renderFriendsFnLeft({ items: array }),
+        result = document.querySelector('.wrapper-dnd--left');
+
+    result.innerHTML = '';
+    result.innerHTML = friendsHtml;
+   
+}
+function addElemsRight (array) {
+    const friendsHtml = renderFriendsFnRight({ items2: array }),
+        result = document.querySelector('.wrapper-dnd--right');
+
+    result.innerHTML = '';
+    result.innerHTML = friendsHtml;
+}
+
+// добавление и удаление элементов из правого блока
+const wrapper = document.querySelector('.wrapper-dnd');
+
+wrapper.addEventListener('click', (e) => {
+    if (e.target.classList.contains('plus')) {
+        let elem = e.target;
+        let li = elem.closest('.friends-item');
+        let id = li.getAttribute('data-id');
+
+        // добавялем элементы в массив
+        rightList.push(addItemArray(id, leftList));
+        leftList = removeItemsArray(id, leftList);
+        // // выводим на страницу
+
+        addElemsLeft(leftList);
+        addElemsRight(rightList);
+    }
+    if (e.target.classList.contains('delete')) {
+        let elem = e.target;
+        let li = elem.closest('.friends-item');
+        let id = li.getAttribute('data-id');
+
+        // добавялем элементы в массив
+        leftList.push(addItemArray(id, rightList));
+
+        rightList = removeItemsArray(id, rightList);
+        // // выводим на страницу
+
+        addElemsLeft(leftList);
+        addElemsRight(rightList);
+    }    
+});
 
 //------- DnD--------- 
 
 let currentDrag;
 
 // функция определения зоны в которой находится item
-function getCurrentZone (from) {
+function getCurrentZone(from) {
     do {
         if (from.classList.contains('drop-zone')) {
             return from;
@@ -73,9 +148,9 @@ function getCurrentZone (from) {
 // ничинаем тащить элемент. Вешаем обработчик
 document.addEventListener('dragstart', (e) => {
     const zone = getCurrentZone(e.target);
-     
+
     if (zone) {
-        currentDrag = { startZone: zone, node: e.target};
+        currentDrag = { startZone: zone, node: e.target };
     }
 
 });
@@ -98,89 +173,70 @@ document.addEventListener('drop', (e) => {
 
         e.preventDefault();
 
-        if (zone && currentDrag.startZone !== zone) {
-            if (e.target.classList.contains('friends-item')) {
-                zone.insertBefore(currentDrag.node, zone.nextElementSibling);
-            } else {
-                zone.insertBefore(currentDrag.node, zone.lastElementChild);
-            }
-        } 
+        if (zone && currentDrag.startZone !== zone && zone.classList.contains('friends-list--right')) {
+            let li = currentDrag.node;
+            let id = li.getAttribute('data-id');
+
+            // добавялем элементы в массив
+            rightList.push(addItemArray(id, leftList));
+            leftList = removeItemsArray(id, leftList);
+            // выводим на страницу
+
+            addElemsLeft(leftList);
+            addElemsRight(rightList);
+           
+        }
+        if (zone && currentDrag.startZone !== zone && zone.classList.contains('friends-list--left')) {
+            let li = currentDrag.node;
+            let id = li.getAttribute('data-id');
+
+            // добавялем элементы в массив
+            leftList.push(addItemArray(id, rightList));
+            rightList = removeItemsArray(id, rightList);
+            // выводим на страницу
+
+            addElemsLeft(leftList);
+            addElemsRight(rightList);
+
+        }
         currentDrag = null;
     }
 
 });
 
 
-// -----добавление списка друзей в правый блок при клике
+/////////////////// поиск друзе //////////////////////
 
-// функция добавления елементов в массив
-let itemsArray = [];
+const leftInput = document.querySelector('.input-left');
+const rightInput = document.querySelector('.input-right');
 
-function addItemArray(items) {
-    if (items) {
-        itemsArray.push(items);
+leftInput.addEventListener('keyup', (e) => {
+    let str = leftInput.value;
 
-        return itemsArray;
+    let arr = leftList.filter(item => {
+        return isMatching(item.first_name, str) || isMatching(item.last_name, str);
+    });
+
+    addElemsLeft(arr);
+});
+
+// rightInput.addEventListener('keyup', () => {
+//   
+// });
+
+function isMatching(full, chunk) {
+    if (full.toLowerCase().indexOf(chunk.toLowerCase()) !== -1) {
+        return true;
     }
+
+    return false;
 }
 
-// функция удаление елементов из массива
-function removeItemsArray (items) {
+//////// Сохранение в LocalStorage///////////////////
 
-    if (items) {
-        let indexItem = itemsArray.indexOf(items);
+const btnSave = document.querySelector('.footer--button-save');
 
-        itemsArray.splice(indexItem, 1);
-
-        return itemsArray;
-    }
-}
-// получаем item
-function getItem (elem) {
-    do {
-        if (elem.classList.contains('friends-item')) {
-            return elem;
-        }
-    } while (elem = elem.parentElement)
-} 
-
-// добавление и удаление элементов из правого блока
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('plus')) {
-        let elem = e.target;
-        let getElem = getItem(elem);
-
-        elem.classList.remove('plus');
-        elem.classList.add('delete');
-        
-        // добавялем элементы в массив
-        addItemArray(getElem);
-
-        const rightZone = document.querySelector('.friends-list--right');
-
-        // выводим на страницу
-        for (let i = 0; i < itemsArray.length; i++) {
-            rightZone.appendChild(itemsArray[i]);    
-        }
-
-    }
-    if (e.target.classList.contains('delete')) {
-        let elem = e.target;
-        let getElem = getItem(elem);
-
-
-        elem.classList.remove('delete');
-        elem.classList.add('plus');
-
-        const rightZone = document.querySelector('.friends-list--right');
-
-        // удаялем элементы в массив
-        removeItemsArray(getElem);
-
-        // выводим на страницу
-        for (let i = 0; i < itemsArray.length; i++) {
-            rightZone.appendChild(itemsArray[i]);
-        }
-    }
-    
+btnSave.addEventListener('click', () => {
+    localStorage.setItem('leftList', JSON.stringify(leftList));
+    localStorage.setItem('rightList', JSON.stringify(rightList));
 });

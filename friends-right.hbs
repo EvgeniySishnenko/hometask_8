@@ -1,0 +1,13 @@
+<ul class="friends-list--right drop-zone">
+    {{#each items2}}
+    <li class="friends-item" draggable="true" data-id="{{id}}">
+        <div class="friends-item--img margin-left">
+            <img src="{{photo_50}}" class="img-avatar">
+        </div>
+        <div class="friends-item--name">{{first_name}} {{last_name}}</div>
+        <div class="friends-item--add">
+            <span class="delete"></span>
+        </div>
+    </li>
+    {{/each}}
+</ul>

@@ -187,10 +187,7 @@ body {
     height: 17px;
     background: url('../images/delete.png') no-repeat;
 }
-.display-none { 
-    display: none;
-}
-.bottom {
+.footer {
     position: absolute;
     bottom: 0;
     width: 100%;
@@ -199,7 +196,7 @@ body {
     border-bottom-left-radius: 9px;
     border-bottom-right-radius: 9px;
 }
-.button-save {
+.footer--button-save {
     position: absolute;
     display: block;
     top: 50%;
@@ -221,5 +218,12 @@ body {
         font-family: "Fira Sans";
         color: rgb(255, 255, 255);
         font-weight: 400;
+    }
+
+    &:hover {
+        background-color: darken(#ff8663, 6%);
+    }
+    &:active {
+          background-color: darken(#ff8663, 3%);
     }
 }
