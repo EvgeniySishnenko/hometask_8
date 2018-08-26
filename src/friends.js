@@ -17,7 +17,6 @@ let leftList = localStorage.getItem('leftList') ?
 VK.init ({
     apiId: 6669838
 });
-
 // авторизация в ВК
 function auth() {
     return new Promise((resolve, reject) => {
@@ -53,16 +52,15 @@ auth()
         return callAPI('friends.get', { fields: 'photo_50' });
     })
     .then(response => {
-       
-        for (var i = 0; i < response.items.length; i++) {            
-            leftList.push(response.items[i]); 
+        if (leftList.length === 0) {
+            for (var i = 0; i < response.items.length; i++) {
+                leftList.push(response.items[i]);
+            }
         }
-        addElemsLeft(leftList);
+              
     });
-
+addElemsLeft(leftList);
 addElemsRight(rightList);
-
-
 
 // -----добавление и удаление списка друзей 
 
@@ -80,24 +78,57 @@ function removeItemsArray (id, array) {
 
     return array;
 }
- 
+
+
 // функция добавление элементов в DOM
 function addElemsLeft(array) {
-
-    const friendsHtml = renderFriendsFnLeft({ items: array }),
-        result = document.querySelector('.wrapper-dnd--left');
-
-    result.innerHTML = '';
-    result.innerHTML = friendsHtml;
    
-}
-function addElemsRight (array) {
-    const friendsHtml = renderFriendsFnRight({ items2: array }),
-        result = document.querySelector('.wrapper-dnd--right');
+    let friendsHtml;
+
+    if (filterLeft) {
+
+        const filteredArray = array.filter(item => {
+
+            return isMatching(`${item.first_name} ${item.last_name}`, filterLeft);
+
+        });
+
+        friendsHtml = renderFriendsFnLeft({ items: filteredArray });
+
+	} else {
+        friendsHtml = renderFriendsFnLeft({ items: array });
+    }
+    
+    const result = document.querySelector('.wrapper-dnd--left');
 
     result.innerHTML = '';
     result.innerHTML = friendsHtml;
 }
+
+function addElemsRight (array) {
+    let friendsHtml;
+
+    if (filterRight) {
+
+        const filteredArray = array.filter(item => {
+
+            return isMatching(`${item.first_name} ${item.last_name}`, filterRight);
+
+        });
+
+        friendsHtml = renderFriendsFnRight({ items2: filteredArray });
+
+    } else {
+
+        friendsHtml = renderFriendsFnRight({ items2: array });
+    }
+    
+    const result = document.querySelector('.wrapper-dnd--right');
+
+    result.innerHTML = '';
+    result.innerHTML = friendsHtml;
+}
+
 
 // добавление и удаление элементов из правого блока
 const wrapper = document.querySelector('.wrapper-dnd');
@@ -111,8 +142,8 @@ wrapper.addEventListener('click', (e) => {
         // добавялем элементы в массив
         rightList.push(addItemArray(id, leftList));
         leftList = removeItemsArray(id, leftList);
-        // // выводим на страницу
 
+        // добавляем на страницу
         addElemsLeft(leftList);
         addElemsRight(rightList);
     }
@@ -123,12 +154,11 @@ wrapper.addEventListener('click', (e) => {
 
         // добавялем элементы в массив
         leftList.push(addItemArray(id, rightList));
-
         rightList = removeItemsArray(id, rightList);
-        // // выводим на страницу
 
-        addElemsLeft(leftList);
+        // добавялем на страницу
         addElemsRight(rightList);
+        addElemsLeft(leftList);
     }    
 });
 
@@ -205,24 +235,33 @@ document.addEventListener('drop', (e) => {
 });
 
 
-/////////////////// поиск друзе //////////////////////
+/////////////////// поиск друзей //////////////////////
 
-const leftInput = document.querySelector('.input-left');
-const rightInput = document.querySelector('.input-right');
+let leftInput = document.querySelector('.input-left');
+let rightInput = document.querySelector('.input-right');
+let filterRight;
+let filterLeft;
 
 leftInput.addEventListener('keyup', (e) => {
-    let str = leftInput.value;
-
-    let arr = leftList.filter(item => {
-        return isMatching(item.first_name, str) || isMatching(item.last_name, str);
+    filterLeft = leftInput.value;
+    let array = leftList.filter(item => {
+        return isMatching(`${item.first_name} ${item.last_name}`, filterLeft);
     });
-
-    addElemsLeft(arr);
+    
+    addElemsLeft(array);
+    
 });
 
-// rightInput.addEventListener('keyup', () => {
-//   
-// });
+rightInput.addEventListener('keyup', (e) => {
+    filterRight = rightInput.value;
+
+    let array = rightList.filter(item => {
+        return isMatching(`${item.first_name} ${item.last_name}`, filterRight);
+    });
+    
+    addElemsRight(array);
+    
+});
 
 function isMatching(full, chunk) {
     if (full.toLowerCase().indexOf(chunk.toLowerCase()) !== -1) {
