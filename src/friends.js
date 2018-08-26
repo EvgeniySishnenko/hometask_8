@@ -1,5 +1,6 @@
-import renderFriendsFnLeft from '../friends-left.hbs';
-import renderFriendsFnRight from '../friends-right.hbs';
+// import renderFriendsFnLeft from '../friends-left.hbs';
+// import renderFriendsFnRight from '../friends-right.hbs';
+import renderFriendsFn from '../friends-content.hbs';
 
 // импортируем в начале файла необходимый нам шаблон .hbs
 // так как в сборке уже присутствует handlebars и handlebars-loader
@@ -68,7 +69,7 @@ addElemsRight(rightList);
 
 function addItemArray(id, array) {
     let item = array.find(items => items.id == Number(id));
-
+    
     return item;
 }
 
@@ -93,14 +94,15 @@ function addElemsLeft(array) {
 
         });
 
-        friendsHtml = renderFriendsFnLeft({ items: filteredArray });
+        friendsHtml = renderFriendsFn({ items: filteredArray, isLeft: true });
 
 	} else {
-        friendsHtml = renderFriendsFnLeft({ items: array });
+        friendsHtml = renderFriendsFn({ items: array, isLeft: true });
+       
     }
     
     const result = document.querySelector('.wrapper-dnd--left');
-
+    
     result.innerHTML = '';
     result.innerHTML = friendsHtml;
 }
@@ -116,11 +118,12 @@ function addElemsRight (array) {
 
         });
 
-        friendsHtml = renderFriendsFnRight({ items2: filteredArray });
-
+        friendsHtml = renderFriendsFn({ items: filteredArray, isLeft: false });
+        
     } else {
 
-        friendsHtml = renderFriendsFnRight({ items2: array });
+        friendsHtml = renderFriendsFn({ items: array, isLeft: false });
+        
     }
     
     const result = document.querySelector('.wrapper-dnd--right');
@@ -203,28 +206,29 @@ document.addEventListener('drop', (e) => {
 
         e.preventDefault();
 
-        if (zone && currentDrag.startZone !== zone && zone.classList.contains('friends-list--right')) {
+        if (zone && currentDrag.startZone !== zone && zone.classList.contains('wrapper-dnd--right')) {
             let li = currentDrag.node;
             let id = li.getAttribute('data-id');
-
+           
             // добавялем элементы в массив
             rightList.push(addItemArray(id, leftList));
             leftList = removeItemsArray(id, leftList);
+           
             // выводим на страницу
 
             addElemsLeft(leftList);
             addElemsRight(rightList);
            
         }
-        if (zone && currentDrag.startZone !== zone && zone.classList.contains('friends-list--left')) {
+        if (zone && currentDrag.startZone !== zone && zone.classList.contains('wrapper-dnd--left')) {
             let li = currentDrag.node;
             let id = li.getAttribute('data-id');
-
+            
             // добавялем элементы в массив
             leftList.push(addItemArray(id, rightList));
             rightList = removeItemsArray(id, rightList);
             // выводим на страницу
-
+            console.log(zone);
             addElemsLeft(leftList);
             addElemsRight(rightList);
 
